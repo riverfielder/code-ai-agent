@@ -1,137 +1,154 @@
 #!/usr/bin/env python3
-"""
-Interactive Mode Example for Cursor Agent
 
-This script demonstrates the agent's capabilities in interactive mode,
-allowing the user to engage in a conversation with the agent and see how 
-it responds to different queries.
-"""
-
-import asyncio
 import os
 import sys
+import json
+import logging
+import asyncio
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Add the parent directory to the path to import the agent module
+script_dir = Path(__file__).parent
+parent_dir = script_dir.parent
+sys.path.append(str(parent_dir))
 
-# Import from cursor_agent_tools package
-from cursor_agent_tools import run_agent_interactive
+from cursor_agent_tools import create_agent
+from cursor_agent_tools import BaseAgent
 
-# Ensure the examples directory is in the path
-examples_dir = Path(__file__).parent
-if str(examples_dir) not in sys.path:
-    sys.path.append(str(examples_dir))
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Import utility functions
-try:
-    from utils import (
-        Colors, 
-        clear_screen, 
-        print_error, 
-        print_separator, 
-        print_system_message
-    )
-except ImportError:
-    # Add project root to path as fallback
-    project_root = Path(__file__).parent.parent
-    if str(project_root) not in sys.path:
-        sys.path.append(str(project_root))
-    try:
-        from examples.utils import (
-            Colors, 
-            clear_screen, 
-            print_error, 
-            print_separator, 
-            print_system_message
-        )
-    except ImportError:
-        raise ImportError("Unable to import utility functions. Make sure utils.py is in the examples directory.")
+# Set cursor_agent_tools.tools.file_tools logger to DEBUG
+file_tools_logger = logging.getLogger("cursor_agent_tools.tools.file_tools")
+file_tools_logger.setLevel(logging.DEBUG)
 
-# Load environment variables
-load_dotenv()
+# Create a temporary directory for testing
+temp_dir = Path("./temp_line_edit_test").resolve()  # Get absolute path
+temp_dir.mkdir(exist_ok=True)
 
-# Default task for example mode
-DEFAULT_TASK = """Create a simple Todo list API with FastAPI with the following features:
-1. A Todo model with id, title, description, and completed status
-2. CRUD endpoints (Create, Read, Update, Delete)
-3. Simple in-memory storage for todos
-Include docstrings and proper error handling.
+# Create a test file with absolute path
+test_file = temp_dir / "test_file.py"
+test_file = test_file.resolve()  # Get absolute path
+test_file_content = """#!/usr/bin/env python3
+
+def hello_world():
+    print("Hello, World!")
+
+def add(a, b):
+    # Add two numbers
+    return a + b
+
+def multiply(a, b):
+    # Multiply two numbers
+    return a * b
+
+def main():
+    hello_world()
+    result1 = add(5, 3)
+    result2 = multiply(4, 2)
+    print(f"Addition result: {result1}")
+    print(f"Multiplication result: {result2}")
+
+if __name__ == "__main__":
+    main()
 """
-
 
 async def main():
     """
-    Main entry point for the interactive example.
+    Demonstrate the line-based editing feature using a real agent implementation.
+    
+    Line-based editing allows precise modifications to specific line ranges
+    using a JSON dictionary where keys are line ranges (e.g., "1-5", "7-7")
+    and values are the new content for those ranges.
     """
+    # Create a test file
+    with open(test_file, "w") as f:
+        f.write(test_file_content)
+    logger.info(f"Created test file at {test_file}")
     
-    # Load environment variables
-    load_dotenv()
+    # Define a system prompt that emphasizes line-based editing with JSON examples
+    system_prompt = """You are an expert coding assistant that specializes in precise line-based editing of files.
 
-    # Check for API keys
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
-    openai_key = os.environ.get("OPENAI_API_KEY")
+IMPORTANT: When using the edit_file tool, you MUST provide the code_edit parameter as a proper JSON dictionary string.
+The keys should be line ranges (e.g., "6-8") and the values should be the new content for those ranges.
+
+For example, to edit lines 6-8 of a file, you would use:
+```
+{
+  "6-8": "def add(a, b):\\n    # Add two numbers with validation\\n    return a + b"
+}
+```
+
+Another example for multiple edits:
+```
+{
+  "6-8": "def add(a, b):\\n    # Add two numbers with validation\\n    return a + b",
+  "10-12": "def multiply(a, b):\\n    # Multiply two numbers with validation\\n    return a * b"
+}
+```
+
+To add a new function after line 12, you would use:
+```
+{
+  "12-12": "\\n\\ndef divide(a, b):\\n    # Divide two numbers\\n    if b == 0:\\n        raise ZeroDivisionError(\\"Division by zero\\")\\n    return a / b"
+}
+```
+
+For complete file replacement, use the code_replace parameter instead.
+
+Always read the file first to determine the correct line numbers."""
     
-    if not anthropic_key and not openai_key:
-        print_error("No API keys found. Please set either ANTHROPIC_API_KEY or OPENAI_API_KEY in your .env file.")
-        sys.exit(1)
+    # Initialize a real agent with the custom system prompt
+    agent = create_agent(model="gpt-4o", system_prompt=system_prompt)
     
-    # Select model based on available keys
-    if openai_key:
-        selected_model = "gpt-4o"
-    else:
-        selected_model = "claude-3-5-sonnet-latest"
+    # Register default tools (including file operations)
+    agent.register_default_tools()
     
-    # Initialize initial query with default
-    initial_query = DEFAULT_TASK
+    # Example: Single prompt to edit multiply function
+    logger.info("Testing line-based editing with a single function")
     
-    try:
-        clear_screen()
-        print_separator()
-        print_system_message("INTERACTIVE MODE EXAMPLE")
-       
-        # Non-interactive mode - use default values
-        print_system_message("Running in non-interactive mode with predefined task")
-        print_system_message(f"Using model: {selected_model}")
-        print_system_message("Task: Create a FastAPI Todo list API")
-        print_separator()
+    prompt = f"""
+Read {test_file} and then update the multiply function to add input validation and better documentation.
+You need to find the exact line numbers for the multiply function first.
+
+After finding the line numbers, use the edit_file tool with the following parameters:
+1. target_file: The absolute path to the file
+2. instructions: A brief description of what you're changing
+3. code_edit: A JSON dictionary with line ranges as keys and new content as values
+
+Example of how to use edit_file:
+```python
+edit_file(
+    target_file="/path/to/file.py",
+    instructions="Update multiply function with validation",
+    code_edit={{"10-12": "def multiply(a, b):\\n    # Multiply two numbers with validation\\n    # Parameters: a, b - numeric values to multiply\\n    # Returns: The product of a and b\\n    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):\\n        raise TypeError(\\"Both arguments must be numbers\\")\\n    return a * b"}}
+)
+```
+
+Do NOT use code_replace as that would replace the entire file.
+"""
     
-        # Store original directory
-        original_dir = os.getcwd()
-        
-        # Create example_files directory if it doesn't exist
-        example_dir = Path(original_dir) / "example_files" / "interactive_example"
-        example_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Change to the example_files directory
-        os.chdir(example_dir)
-        print_system_message(f"Working in directory: {os.getcwd()}")
-        print_separator()
-        
-        # Run the interactive agent using cursor_agent.agent.run_agent_interactive
-        await run_agent_interactive(
-            model=selected_model,
-            initial_query=initial_query,
-            max_iterations=20,
-            auto_continue=True  # Auto-continue in non-interactive mode
-        )
-        
-        # Change back to the original directory
-        os.chdir(original_dir)
-        
-    except Exception as e:
-        print_error(f"An error occurred: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        # Ensure we change back to the original directory if an exception occurs
-        if 'original_dir' in locals():
-            os.chdir(original_dir)
-            
-    finally:
-        # Make sure we always return to the original directory
-        if 'original_dir' in locals():
-            os.chdir(original_dir)
-        print_system_message("INTERACTIVE EXAMPLE COMPLETED")
+    response = await agent.chat(prompt)
+    logger.info(f"Agent response: {response}")
+    
+    # Display the edited file
+    with open(test_file, "r") as f:
+        edited_content = f.read()
+        logger.info("File after edit:")
+        logger.info(edited_content)
+    
+    # Verify changes were made correctly
+    with open(test_file, "r") as f:
+        final_content = f.read()
+        multiply_improved = "def multiply" in final_content and any(term in final_content for term in ["validation", "parameter", "input"])
+        logger.info(f"Multiply function was improved: {multiply_improved}")
+    
+    # Clean up
+    if input("Do you want to clean up the temporary directory? (y/n): ").lower() == "y":
+        import shutil
+        shutil.rmtree(temp_dir)
+        logger.info(f"Removed temporary directory {temp_dir}")
 
 
 if __name__ == "__main__":
