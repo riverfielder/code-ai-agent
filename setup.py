@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 # Replace relative links with absolute GitHub URLs
-repo_url = "https://github.com/civai-technologies/cursor-agent"
+repo_url = "https://github.com/riverfielder/code-ai-agent"
 branch = "main"  # Assuming main is the default branch
 
 # Process in this order:
