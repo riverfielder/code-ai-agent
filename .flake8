@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 100
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,venv
+ignore = E203, E501, W503
+
+per-file-ignores =
+    __init__.py: F401
+    tests/demo/*: F841,W504,F401,E402,F541
+    tests/*: F841,W504,F401,E128
+
+# Match Black style
+line-length = 100 
