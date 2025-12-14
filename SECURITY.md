@@ -4,7 +4,7 @@
 
 The Cursor Agent team takes security issues seriously. We appreciate your efforts to responsibly disclose your findings.
 
-To report a security issue, please email hello@civai.co or contact [@usecodenaija](https://twitter.com/usecodenaija) on Twitter, or open a security-related issue on our [GitHub repository](https://github.com/civai-technologies/cursor-agent).
+To report a security issue, please email email@example.com or contact [River Fielder](https://twitter.com/usecodenaija) on Twitter, or open a security-related issue on our [GitHub repository](https://github.com/riverfielder/code-ai-agent).
 
 We will acknowledge your report within 48 hours and provide a more detailed response within 72 hours indicating the next steps in handling your submission.
 

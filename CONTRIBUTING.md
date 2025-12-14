@@ -11,7 +11,7 @@ By participating in this project, you agree to abide by our [Code of Conduct](CO
 ### Reporting Bugs
 
 Before submitting a bug report:
-- Check the [issue tracker](https://github.com/civai-technologies/cursor-agent/issues) to see if the issue has already been reported.
+- Check the [issue tracker](https://github.com/riverfielder/code-ai-agent/issues) to see if the issue has already been reported.
 - If you're unable to find an open issue addressing the problem, open a new one.
 
 When filing an issue, please include:
@@ -52,7 +52,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. Fork and clone the repository
 ```bash
-git clone https://github.com/civai-technologies/cursor-agent.git
+git clone https://github.com/riverfielder/code-ai-agent.git
 cd cursor-agent
 ```
 

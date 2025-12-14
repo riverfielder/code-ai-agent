@@ -1,4 +1,4 @@
-# Cursor Agent Tools
+# Code AI Agent
 
 ![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
 ![Anthropic](https://img.shields.io/badge/Anthropic-Claude-blueviolet)
@@ -51,21 +51,6 @@ The agent supports a comprehensive set of tools:
 
 All tools are implemented with actual functionality and can be extended with custom tools as needed.
 
-## 📚 Table of Contents
-
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Usage Examples](#usage-examples)
-- [Project Structure](#project-structure)
-- [Configuration](#configuration)
-- [Permission System](#permission-system)
-- [Contributing](#contributing)
-- [API Documentation](#api-documentation)
-- [Advanced Usage](#advanced-usage)
-- [Limitations and Considerations](#limitations-and-considerations)
-- [Roadmap](#roadmap)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
 
 ## 🚀 Installation
 
@@ -83,7 +68,7 @@ pip install cursor-agent-tools
 ### From Source
 
 ```bash
-git clone https://github.com/civai-technologies/cursor-agent.git
+git clone https://github.com/riverfielder/code-ai-agent.git
 cd cursor-agent
 pip install -e .  # Install in development mode
 

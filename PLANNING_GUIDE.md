@@ -374,7 +374,7 @@
 ## 🚀 快速参考
 
 ### 项目在线信息
-- GitHub: https://github.com/civai-technologies/cursor-agent
+- GitHub: https://github.com/riverfielder/code-ai-agent
 - PyPI: https://pypi.org/project/cursor-agent-tools/
 - 文档: (待建立)
 
